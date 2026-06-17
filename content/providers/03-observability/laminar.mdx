@@ -9,13 +9,13 @@ description: Monitor your AI SDK applications with Laminar
 
 Laminar features:
 
-- [Tracing compatible with AI SDK and more](https://docs.lmnr.ai/tracing/introduction),
-- [Evaluations](https://docs.lmnr.ai/evaluations/introduction),
-- [Browser agent observability](https://docs.lmnr.ai/tracing/browser-agent-observability)
+- [Tracing compatible with AI SDK and more](https://laminar.sh/docs/tracing/introduction),
+- [Evaluations](https://laminar.sh/docs/evaluations/introduction),
+- [Signals and alerts about your agent behavior](https://laminar.sh/docs/signals/introduction)
 
 <Note>
   A version of this guide is available in [Laminar's
-  docs](https://docs.lmnr.ai/tracing/integrations/vercel-ai-sdk).
+  docs](https://laminar.sh/docs/tracing/integrations/vercel-ai-sdk).
 </Note>
 
 ## Setup
@@ -28,17 +28,17 @@ To start with Laminar's tracing, first [install](https://docs.lmnr.ai/installati
 
 <Tabs items={['pnpm', 'npm', 'yarn', 'bun']}>
   <Tab>
-    <Snippet text="pnpm add @lmnr-ai/lmnr @ai-sdk/otel" dark />
+    <Snippet text="pnpm add @lmnr-ai/lmnr" dark />
   </Tab>
   <Tab>
-    <Snippet text="npm install @lmnr-ai/lmnr @ai-sdk/otel" dark />
+    <Snippet text="npm install @lmnr-ai/lmnr" dark />
   </Tab>
   <Tab>
-    <Snippet text="yarn add @lmnr-ai/lmnr @ai-sdk/otel" dark />
+    <Snippet text="yarn add @lmnr-ai/lmnr" dark />
   </Tab>
 
   <Tab>
-    <Snippet text="bun add @lmnr-ai/lmnr @ai-sdk/otel" dark />
+    <Snippet text="bun add @lmnr-ai/lmnr" dark />
   </Tab>
 </Tabs>
 
@@ -46,9 +46,11 @@ To start with Laminar's tracing, first [install](https://docs.lmnr.ai/installati
 
 Then, either sign up on [Laminar](https://laminar.sh) or self-host an instance ([github](https://github.com/lmnr-ai/lmnr)) and create a new project.
 
-In the project settings, create and copy the API key.
+Use `npx lmnr-cli@latest setup` or follow the steps below manually
 
-In your .env
+First, create the API key manually in the project settings page
+
+Then, n your .env
 
 ```bash
 LMNR_PROJECT_API_KEY=...
@@ -65,13 +67,12 @@ export async function register() {
   // prevent this from running in the edge runtime
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     const { registerTelemetry } = await import('ai');
-    const { LegacyOpenTelemetry } = await import('@ai-sdk/otel');
-    const { Laminar, getTracer } = await import('@lmnr-ai/lmnr');
+    const { LaminarAiSdkTelemetry } = await import('@lmnr-ai/lmnr');
 
     Laminar.initialize({
       projectApiKey: process.env.LMNR_PROJECT_API_KEY,
     });
-    registerTelemetry(new LegacyOpenTelemetry({ tracer: getTracer() }));
+    registerTelemetry(new LaminarAiSdkTelemetry());
   }
 }
 ```
@@ -99,7 +100,7 @@ import { openai } from '@ai-sdk/openai';
 import { generateText } from 'ai';
 
 const { text } = await generateText({
-  model: openai('gpt-4o-mini'),
+  model: openai('gpt-5.4-mini'),
   prompt: 'What is Laminar flow?',
 });
 ```
@@ -139,16 +140,19 @@ Laminar can live alongside `@vercel/otel` and trace AI SDK calls. The default La
 import { registerOTel } from '@vercel/otel';
 
 export async function register() {
-  registerOTel('my-service-name');
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     const { registerTelemetry } = await import('ai');
-    const { LegacyOpenTelemetry } = await import('@ai-sdk/otel');
-    const { Laminar } = await import('@lmnr-ai/lmnr');
-    // Make sure to initialize Laminar **after** `@registerOTel`
-    Laminar.initialize({
-      projectApiKey: process.env.LMNR_PROJECT_API_KEY,
+    const { initializeLaminarInstrumentations, LaminarAiSdkTelemetry } =
+      await import('@lmnr-ai/lmnr');
+
+    // Next.js telemetry
+    registerOTel({
+      serviceName: 'my-service',
+      instrumentations: initializeLaminarInstrumentations(),
     });
-    registerTelemetry(new LegacyOpenTelemetry());
+
+    // Laminar AI SDK telemetry
+    registerTelemetry(new LaminarAiSdkTelemetry());
   }
 }
 ```
@@ -168,19 +172,15 @@ This will ensure that
 export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     const { registerTelemetry } = await import('ai');
-    const { LegacyOpenTelemetry } = await import('@ai-sdk/otel');
     const Sentry = await import('@sentry/node');
-    const { Laminar } = await import('@lmnr-ai/lmnr');
+    const { LaminarAiSdkTelemetry } = await import('@lmnr-ai/lmnr');
 
     Sentry.init({
       dsn: process.env.SENTRY_DSN,
     });
 
     // Make sure to initialize Laminar **after** `Sentry.init`
-    Laminar.initialize({
-      projectApiKey: process.env.LMNR_PROJECT_API_KEY,
-    });
-    registerTelemetry(new LegacyOpenTelemetry());
+    registerTelemetry(new LaminarAiSdkTelemetry());
   }
 }
 ```
@@ -193,16 +193,15 @@ Then, initialize tracing in your application:
 
 ```javascript
 import { registerTelemetry } from 'ai';
-import { LegacyOpenTelemetry } from '@ai-sdk/otel';
-import { Laminar, getTracer } from '@lmnr-ai/lmnr';
+import { LaminarAiSdkTelemetry } from '@lmnr-ai/lmnr';
 
 Laminar.initialize();
-registerTelemetry(new LegacyOpenTelemetry({ tracer: getTracer() }));
+registerTelemetry(new LaminarAiSdkTelemetry()));
 ```
 
 This must be done once in your application, as early as possible, but _after_ other tracing libraries (e.g. `@sentry/node`) are initialized.
 
-Read more in Laminar [docs](https://docs.lmnr.ai/tracing/introduction).
+Read more in Laminar [docs](https://laminar.sh/docs/tracing/introduction).
 
 ### Tracing AI SDK calls
 
@@ -233,16 +232,15 @@ This will create spans for `ai.generateText`. Laminar collects and displays the 
 Laminar can work with `@sentry/node` to trace AI SDK calls. Make sure to initialize Laminar **after** `Sentry.init`:
 
 ```javascript
+const { LaminarAiSdkTelemetry } = await import('@lmnr-ai/lmnr');
 const Sentry = await import('@sentry/node');
-const { Laminar } = await import('@lmnr-ai/lmnr');
+const { registerTelemetry } = await import('ai');
 
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
 });
 
-Laminar.initialize({
-  projectApiKey: process.env.LMNR_PROJECT_API_KEY,
-});
+registerTelemetry(new LaminarAiSdkTelemetry());
 ```
 
 This will ensure that
@@ -253,6 +251,55 @@ This will ensure that
 The two libraries allow for additional advanced configuration, but the default setup above is recommended.
 
 ## Additional configuration
+
+### Laminar options
+
+`LaminarAiSdkTelemetry` can pass options to Laminar.initialize(). For self-hosting users,
+
+```javascript
+import { registerTelemetry } from 'ai';
+import { LaminarAiSdkTelemetry } from '@lmnr-ai/lmnr';
+
+Laminar.initialize();
+registerTelemetry(new LaminarAiSdkTelemetry({
+  laminarOptions: {
+    projectApiKey: prosess.env.LMNR_PROJECT_API_KEY,
+    baseUrl: "http://localhost",
+    httpPort: 8000,
+    grpcPort: 8001,
+  },
+})));
+```
+
+### Do not record inputs or outputs
+
+By default, Laminar integration records all inputs and outputs, but you can disable these in the constructor options.
+
+```javascript
+import { registerTelemetry } from 'ai';
+import { LaminarAiSdkTelemetry } from '@lmnr-ai/lmnr';
+
+Laminar.initialize();
+registerTelemetry(new LaminarAiSdkTelemetry({
+  recordInputs: false, // default true
+  recordOutputs: false, // default true
+})));
+```
+
+### Adding a span for every agent step
+
+AI SDK telemetry integrations emit step spans for every agent step. By default, Laminar ignores these spans. You can
+configure this in the constructor options.
+
+```javascript
+import { registerTelemetry } from 'ai';
+import { LaminarAiSdkTelemetry } from '@lmnr-ai/lmnr';
+
+Laminar.initialize();
+registerTelemetry(new LaminarAiSdkTelemetry({
+  createStepSpan: true, // default false
+})));
+```
 
 ### Span name
 
