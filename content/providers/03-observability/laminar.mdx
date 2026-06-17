@@ -22,6 +22,22 @@ Laminar features:
 
 Laminar's tracing is based on OpenTelemetry. It supports AI SDK [telemetry](/docs/ai-sdk-core/telemetry).
 
+### Agentic installation
+
+Copy the prompt below and paste it to your coding agent, for it to integrate fully automatically
+
+```markdown
+1. Run `npx lmnr-cli setup` at the project root to get started with Laminar. This command will authenticate the user, save a new project API key to .env, and install the Laminar skill.
+2. This application likely uses Vercel AI SDK. Instrument your project with Laminar using the installed skill or the docs:
+   https://laminar.sh/docs/tracing/integrations/vercel-ai-sdk
+3. Run a traced path inside your application.
+4. Verify instrumentation:
+   `lmnr-cli sql query "SELECT * FROM traces ORDER BY start_time DESC LIMIT 1" --json`
+5. View your traces in the browser
+```
+
+or install manually.
+
 ### Installation
 
 To start with Laminar's tracing, first [install](https://docs.lmnr.ai/installation) the `@lmnr-ai/lmnr` package.
@@ -46,15 +62,11 @@ To start with Laminar's tracing, first [install](https://docs.lmnr.ai/installati
 
 Then, either sign up on [Laminar](https://laminar.sh) or self-host an instance ([github](https://github.com/lmnr-ai/lmnr)) and create a new project.
 
-Use `npx lmnr-cli@latest setup` or follow the steps below manually
+Use `npx lmnr-cli@latest setup`. This will:
 
-First, create the API key manually in the project settings page
-
-Then, n your .env
-
-```bash
-LMNR_PROJECT_API_KEY=...
-```
+- authenticate your device with Laminar,
+- create a new project API key and save it to your .env as `LMNR_PROJECT_API_KEY`,
+- install skills needed to instrument your app
 
 ## Next.js
 
