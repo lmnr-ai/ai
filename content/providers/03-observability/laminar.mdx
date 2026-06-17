@@ -21,11 +21,11 @@ Laminar features:
 
 ## Setup
 
-Laminar's tracing is based on OpenTelemetry. It supports AI SDK [telemetry](/docs/ai-sdk-core/telemetry).
+You can use your coding agent to install Laminar or install it manually.
 
-### Agentic installation
+### Setup with your coding agent
 
-Copy the prompt below and paste it to your coding agent, for it to integrate fully automatically
+Copy the prompt below and paste it to your coding agent, for it to integrate fully automatically.
 
 ```markdown
 1. Run `npx lmnr-cli setup` at the project root to get started with Laminar. This command will authenticate the user, save a new project API key to .env, and install the Laminar skill.
@@ -36,11 +36,9 @@ Copy the prompt below and paste it to your coding agent, for it to integrate ful
    `lmnr-cli sql query "SELECT * FROM traces ORDER BY start_time DESC LIMIT 1" --json`
 ```
 
-or install manually.
+### Manual setup
 
-### Installation
-
-To start with Laminar's tracing, first [install](https://docs.lmnr.ai/installation) the `@lmnr-ai/lmnr` package.
+To setup Laminar manually, first install the `@lmnr-ai/lmnr` package.
 
 <Tabs items={['pnpm', 'npm', 'yarn', 'bun']}>
   <Tab>
@@ -139,7 +137,7 @@ module.exports = {
 };
 ```
 
-For more information, see Laminar's [Next.js guide](https://docs.lmnr.ai/tracing/nextjs) and Next.js [instrumentation docs](https://nextjs.org/docs/app/api-reference/file-conventions/instrumentation). You can also learn how to enable all traces for Next.js in the docs.
+For more information, see Laminar's [AI SDK Integration guide](https://laminar.sh/docs/tracing/integrations/vercel-ai-sdk) and Next.js [instrumentation docs](https://nextjs.org/docs/app/api-reference/file-conventions/instrumentation). You can also learn how to enable all traces for Next.js in the docs.
 
 ### Usage with `@vercel/otel`
 
@@ -224,7 +222,7 @@ import { openai } from '@ai-sdk/openai';
 import { generateText } from 'ai';
 
 const { text } = await generateText({
-  model: openai('gpt-4o-mini'),
+  model: openai('gpt-5.4-mini'),
   prompt: 'What is Laminar flow?',
 });
 ```
@@ -319,7 +317,7 @@ If you want to override the default span name, you can set the `functionId` insi
 
 ```javascript
 const { text } = await generateText({
-  model: openai('gpt-4.1-nano'),
+  model: openai('gpt-5.4-mini'),
   prompt: `Write a poem about Laminar flow.`,
   telemetry: {
     functionId: 'poem-writer',
@@ -352,7 +350,7 @@ const result = await observe(
   { name: 'poem writer' },
   async (topic: string, mood: string) => {
     const { text } = await generateText({
-      model: openai('gpt-4.1-nano'),
+      model: openai('gpt-5.4-mini'),
       prompt: `Write a poem about ${topic} in ${mood} mood.`,
     });
     return text;
@@ -368,7 +366,7 @@ In Laminar, metadata is set on the trace level. Metadata contains key-value pair
 
 ```javascript
 const { text } = await generateText({
-  model: openai('gpt-4.1-nano'),
+  model: openai('gpt-5.4-mini'),
   prompt: `Write a poem about Laminar flow.`,
   telemetry: {
     metadata: {
@@ -379,17 +377,17 @@ const { text } = await generateText({
 });
 ```
 
-This is converted to Laminar's [metadata](https://docs.lmnr.ai/tracing/structure/metadata) and stored in the trace.
+This is converted to Laminar's [metadata](https://laminar.sh/docs/tracing/structure/metadata) and stored in the trace.
 
 ### Tags
 
-One of the reserved metadata keys is `tags`. It can be used to add [tags](https://docs.lmnr.ai/tracing/structure/tags) to the span.
+One of the reserved metadata keys is `tags`. It can be used to add [tags](https://laminar.sh/docs/tracing/structure/tags) to the span.
 
 Tags can subsequently be used to filter traces in Laminar.
 
 ```javascript
 const { text } = await generateText({
-  model: openai('gpt-4.1-nano'),
+  model: openai('gpt-5.4-mini'),
   prompt: `Write a poem about Laminar flow.`,
   telemetry: {
     metadata: {
@@ -401,12 +399,12 @@ const { text } = await generateText({
 
 ### Session ID and User ID
 
-Traces in Laminar can be grouped into [sessions](https://docs.lmnr.ai/tracing/structure/session) or by [user ID](https://docs.lmnr.ai/tracing/structure/user-id). These are also
+Traces in Laminar can be grouped into [sessions](https://laminar.sh/docs/tracing/structure/sessions) or by [user ID](https://laminar.sh/docs/tracing/structure/user-id). These are also
 reserved metadata keys.
 
 ```javascript
 const { text } = await generateText({
-  model: openai('gpt-4.1-nano'),
+  model: openai('gpt-5.4-mini'),
   prompt: `Write a poem about Laminar flow.`,
   telemetry: {
     metadata: {
