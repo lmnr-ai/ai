@@ -5,7 +5,7 @@ description: Monitor your AI SDK applications with Laminar
 
 # Laminar observability
 
-[Laminar](https://laminar.sh) is the open-source platform for tracing and evaluating AI applications.
+[Laminar](https://laminar.sh) is an [open-source](https://github.com/lmnr-ai/lmnr), Otel-native observability platform purpose-built for AI agents.
 
 Laminar features:
 
@@ -28,12 +28,11 @@ Copy the prompt below and paste it to your coding agent, for it to integrate ful
 
 ```markdown
 1. Run `npx lmnr-cli setup` at the project root to get started with Laminar. This command will authenticate the user, save a new project API key to .env, and install the Laminar skill.
-2. This application likely uses Vercel AI SDK. Instrument your project with Laminar using the installed skill or the docs:
+2. Instrument this project with Laminar using the installed skill or the docs:
    https://laminar.sh/docs/tracing/integrations/vercel-ai-sdk
 3. Run a traced path inside your application.
 4. Verify instrumentation:
    `lmnr-cli sql query "SELECT * FROM traces ORDER BY start_time DESC LIMIT 1" --json`
-5. View your traces in the browser
 ```
 
 or install manually.
@@ -66,7 +65,7 @@ Use `npx lmnr-cli@latest setup`. This will:
 
 - authenticate your device with Laminar,
 - create a new project API key and save it to your .env as `LMNR_PROJECT_API_KEY`,
-- install skills needed to instrument your app
+- install Laminar skill that your coding agent will use to instrument your agent using Laminar SDK
 
 ## Next.js
 
